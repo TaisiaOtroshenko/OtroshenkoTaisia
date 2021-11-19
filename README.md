@@ -1,2 +1,2 @@
 # OtroshenkoTaisia
-laboratory work MZYAP
+laboratory work Assembler - using tasm, tlink, rtm, td, DOSBox, Visual Studio Code
