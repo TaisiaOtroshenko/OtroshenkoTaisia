@@ -1,9 +1,11 @@
 .model small
 .stack 100h
 .data
-	W_TAB dw 7h
-	B_TAB db 12
-	W_TAB2 dw 1Dh
+	B_TAB db 1Ah,2Bh,3Ch,4Dh,5Eh,6Fh,7Ah,8Bh 
+	W_TAB dw  1A2Bh,3C4Dh,5E6Fh,7A8Bh
+	B_TAB1 db 0Ah,8 dup(1)
+	W_TAB1 dw 8 dup(1)
+	W_TAB2 dw 11h,12h,13h,14h,15h,16h,17h,18h
 .code
 Start:
 	mov AX, @Data
