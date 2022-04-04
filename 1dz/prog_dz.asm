@@ -7,15 +7,6 @@
 ;б) Проверить строки с нечётными номерами на возрастание, с чётными номерами – на убывание. 
 ;в) Найдите среднее арифметическое положительных чисел среди элементов матрицы, выделенных чѐрным цветом.
 
-mWriteStr macro string
-push ax ; Сохранение регистров, используемых в макросе, в стек
-push dx
-mov ah, 09h ; 09h - функция вывода строки на экран
-mov dx, offset string
-int 21h
-pop dx ; Перенос сохранённых значений обратно в регистры
-pop ax
-endm mWriteStr
 mCLS macro start
 push ax ; Сохранение регистров, используемых в макросе, в стек
 push bx
@@ -24,9 +15,9 @@ push dx
 mov ah, 10h
 mov al, 3h
 int 10h ; Включение режима видеоадаптора с 16-ю цветами
-mov ax, 0600h ; ah = 06 - прокрутка вверх
-mov bh, 11111001b ; 0001 - синий (фон), 1110 - желтый (текст)
-mov cx, start ; ah = 00 - строка верхнуго левого угла
+mov ah, 06h ; ah = 06 - прокрутка вверх
+mov bh, 11111001b ; белый фон, синий текст
+mov cx, start ; (ah = 00 - строка верхнуго левого угла)
 mov dx, 184Fh ; dh = 18h - строка нижнего правого угла
 int 10h ; Очистка экрана и установка цветов фона и текста
 mov dx, 0 ; dh - строка, dl - столбец
@@ -38,6 +29,15 @@ pop cx
 pop bx
 pop ax
 endm mCLS
+mWriteStr macro string
+push ax ; Сохранение регистров, используемых в макросе, в стек
+push dx
+mov ah, 09h ; 09h - функция вывода строки на экран
+mov dx, offset string
+int 21h
+pop dx ; Перенос сохранённых значений обратно в регистры
+pop ax
+endm mWriteStr
 mWriteAX macro
     local convert, write
     push ax ; Сохранение регистров, используемых в макросе, в стек
@@ -85,9 +85,6 @@ mov [buffer], size ; Задаём размер буфера
 mov dx, offset [buffer]
 mov ah, 0Ah ; 0Ah - функция чтения строки из консоли
 int 21h
-; mov ah, 02h ; 02h - функция вывода символа на экран
-; mov dl, 0Dh
-; int 21h ; Переводим каретку на новою строку
 mov ah, 02h ; 02h - функция вывода символа на экран
 mov dl, 0Ah
 int 21h ; Переносим курсор на новою строку
@@ -114,7 +111,7 @@ mov dl, [bx] ; Получаем следующий символ
 sub dl, '0' ; Переводим его в числовой формат
 add ax, dx ; Прибавляем к конечному результату
 cmp ax, 8000h ; Если число выходит за границы, то
-jae input ; врзвращаемся на ввод числа
+jae input ; возвращаемся на ввод числа
 inc bx ; Переходим к следующему символу
 loop startOfConvert
 cmp [buffer][2], '-' ; Ещё раз проверяем знак
@@ -128,7 +125,8 @@ endm mReadAX
 mReadMatrix macro matrix, row, col
 local rowLoop, colLoop
 JUMPS ; Директива, делающая возможным большие прыжки
-push bx ; Сохранение регистров, используемых в макросе, в стек
+push ax ; Сохранение регистров, используемых в макросе, в стек
+push bx
 push cx
 push si
 xor bx, bx ; Обнуляем смещение по строкам
@@ -139,11 +137,10 @@ xor si, si ; Обнуляем смещение по столбцам
 mov cx, col
 colLoop: ; Внутренний цикл, проходящий по столбцам
 mReadAX buffer 4 ; Макрос ввода значения регистра AX с клавиатуры
-; [Приложение 1]
 mov matrix[bx][si], ax
 add si, 2 ; Переходим к следующему элементу (размером в слово)
 loop colLoop
-mWriteStr endl ; Макрос вывода строки на экран [Приложение 3]
+mWriteStr endl ; Макрос вывода строки на экран
 ; Перенос курсора и каретки на следующую строку
 add bx, col ; Увеличиваем смещение по строкам
 add bx, col ; (дважды, так как размер каждого элемента - слово)
@@ -152,6 +149,7 @@ loop rowLoop
 pop si ; Перенос сохранённых значений обратно в регистры
 pop cx
 pop bx
+pop ax
 NOJUMPS ; Прекращение действия директивы JUMPS
 endm mReadMatrix
 mWriteMatrix macro matrix, row, col
@@ -168,14 +166,14 @@ xor si, si ; Обнуляем смещение по столбцам
 mov cx, col
 colLoop: ; Внутренний цикл, проходящий по столбцам
 mov ax, matrix[bx][si] ; bx - смещение по строкам, si - по столбцам
-mWriteAX ; Макрос вывода значения регистра AX на экран [Приложение 2]
+mWriteAX ; Макрос вывода значения регистра AX на экран
 ; Вывод текущего элемента матрицы
 xor ax, ax
-mWriteStr tab ; Макрос вывода строки на экран *Приложение 3]
+mWriteStr tab ; Макрос вывода строки на экран
 ; Вывод на экран табуляции, разделяющей элементы строки
 add si, 2 ; Переходим к следующему элементу (размером в слово)
 loop colLoop
-mWriteStr endl ; Макрос вывода строки на экран *Приложение 3]
+mWriteStr endl ; Макрос вывода строки на экран
 ; Перенос курсора и каретки на следующую строку
 add bx, col ; Увеличиваем смещение по строкам
 add bx, col ; (дважды, так как размер каждого элемента - слово)
@@ -209,15 +207,13 @@ mov ax, matrix[bx]
 push ax ; Заносим текущий элемент в стек
 mov ax, row
 mul si ; Устанавливаем смещение по строкам
-add ax, di ; Устанавливаем смешение по столбцам
+add ax, di ; Устанавливаем смещение по столбцам
 ; (смещения по строкам и столбцам меняются 
 ; местами по сравнению с оригинальной матрицей)
 mov bx, ax
 pop ax
-mov resMatrix[bx], ax ; Заносим в новую матрицу элемент,
- ; сохранённый в стеке
-add si, 2 ; Переходим к следующему элементу
-; (размером в слово)
+mov resMatrix[bx], ax ; Заносим в новую матрицу элемент, сохранённый в стеке
+add si, 2 ; Переходим к следующему элементу (размером в слово)
 loop colLoop
 add di, 2 ; Переходим к следующей строке
 pop cx
@@ -267,7 +263,7 @@ mov cx, col
 colLoopReverse: ; Внутренний цикл, проходящий по столбцам
 mov ax, col
 mul di ; Устанавливаем смещение по строкам
-add ax, si ; Устанавливаем смешение по столбцам
+add ax, si ; Устанавливаем смещение по столбцам
 mov bx, ax
 cmp buffnotnull, 0
 je placeziro
@@ -276,7 +272,7 @@ mov resmatrix[bx], ax ; тащим со стека, пока элементы н
 dec buffnotnull
 jmp next
 placeziro:
-mov resmatrix[bx], 0
+mov resmatrix[bx], 0 ; оставшееся заполняем нолями
 next:
 sub si, 2 ; Переходим к предыдущему элементу (размером в слово)
 dec cx
@@ -293,7 +289,7 @@ pop cx
 pop bx
 pop ax
 endm mZiroBeforeMatrix
-mTextIncrease macro matrix, row, col
+mTestIncrease macro matrix, row, col
 local rowLoop, colLoop, colLoop1, parity, next_str
 JUMPS
 push ax ; Сохранение регистров, используемых в макросе, в стек
@@ -303,7 +299,6 @@ push si
 push di
 push dx
 mov di, 1 ; di - счётчик строк, начиная с единицы
-xor dx, dx ; dx - счётчик отрицательных чисел в строке
 xor bx, bx ; Обнуляем смещение по строкам
 mov cx, row
 rowLoop:
@@ -320,27 +315,27 @@ jnz parity
 
 colLoop:
 mov ax, matrix[bx][si] ; bx - смещение по строкам, si - по столбцам
-cmp ax, matrix[bx][si+2];
-jl next_str ; dec
+cmp ax, matrix[bx][si+2]; сравниваем со следующим
+jle next_str ; если не подходит под условие - перейти к следующей строке
 add si, 2 ; Переходим к следующему элементу (размером в слово)
 loop colLoop
 
 mov ax, di
 mWriteAX ; Выводим номер текущей строки
-mWriteStr dec_str
+mWriteStr dec_str ; тип проверки
 jmp next_str
 
 parity:
 colLoop1:
 mov ax, matrix[bx][si] ; bx - смещение по строкам, si - по столбцам
-cmp ax, matrix[bx][si+2];
-jg next_str ; inc
+cmp ax, matrix[bx][si+2]; сравниваем со следующим
+jge next_str ; если не подходит под условие - перейти к следующей строке
 add si, 2 ; Переходим к следующему элементу (размером в слово)
 loop colLoop1
 
 mov ax, di
 mWriteAX ; Выводим номер текущей строки
-mWriteStr inc_str
+mWriteStr inc_str ; тип проверки
 
 next_str:
 mWriteStr endl
@@ -357,7 +352,7 @@ pop cx
 pop bx
 pop ax
 NOJUMPS
-endm mTextIncrease
+endm mTestIncrease
 mGetAverageAboveDiagonal macro matrix, row, col
 local rowLoop, colLoop, belowTheDiagonal
 push ax ; Сохранение регистров, используемых в макросе, в стек
@@ -378,7 +373,7 @@ mov cx, col
 colLoop:
 
 cmp di, si ; Сравниваем счётчики строк и столбцов
-jae belowTheDiagonal ; Если элемент ниже главной диагонали,
+jae belowTheDiagonal ; Если элемент ниже главной диагонали, перейти к следующему
 push ax
 push dx
 mov dx, col
@@ -388,7 +383,7 @@ add ax, di
 cmp ax, dx
 pop dx
 pop ax
-ja belowTheDiagonal
+ja belowTheDiagonal ; Если элемент ниже побочной диагонали, перейти к следующему
 add ax, matrix[bx][si] ; bx - смещение по строкам, si - по столбцам
 inc dx
 belowTheDiagonal:
@@ -415,8 +410,6 @@ pop cx
 pop bx
 pop ax
 endm mGetAverageveDiagonal
-
-
 
 .DATA
 buffer              db 20 dup(?)
@@ -508,12 +501,12 @@ task1: ; Перемещение нулей в начало строки
     int 21h
     jmp menu
 task2: ; Проверка строк на монотонность
-    mTextIncrease currentMatrix, rows, cols
+    mTestIncrease currentMatrix, rows, cols
     mov ah, 07h ; Задержка экрана
     int 21h
     jmp menu
-; Получение суммы элементов выше главной диагонали
-task3:
+
+task3: ; Получение среднего арифметического элементов выше диагоналей
     mGetAverageAboveDiagonal currentMatrix, rows, cols
     mov ah, 07h ; Задержка экрана
     int 21h
