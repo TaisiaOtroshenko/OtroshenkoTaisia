@@ -1,0 +1,7 @@
+﻿  Assembling Source1.asm...
+  Source.cpp
+C:\Users\tytsy\source\repos\assembly2\assembly2\Source.cpp(19,28): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+C:\Users\tytsy\source\repos\assembly2\assembly2\Source.cpp(28,10): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+C:\Users\tytsy\source\repos\assembly2\assembly2\Source.cpp(32,17): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+C:\Users\tytsy\source\repos\assembly2\assembly2\Source.cpp(36,23): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+  assembly2.vcxproj -> C:\Users\tytsy\source\repos\assembly2\Debug\assembly2.exe
