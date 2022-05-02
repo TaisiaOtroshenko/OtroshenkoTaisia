@@ -17,17 +17,12 @@ Start:
 	mov B_TAB,-3
 	mov W_TAB,-3
 	mov ax,2A1Bh
-	mov ax, 31h
-	mov bx, offset B_TAB
-	mov ds:[bx+8], ax
 ;регистровая
 	mov bl,al
 	mov bh,al
 	sub ax,bx
 	sub ax,ax
 ;прямая
-	mov al,B_TAB+8
-	mov bl, al
 	mov ax,W_TAB
 	mov ax,W_TAB+3 ; смещение адреса
 	mov ax,W_TAB+5
@@ -39,9 +34,7 @@ Start:
 ;косвенная
 	mov bx,offset B_TAB ;относительный адрес
 	mov si,offset B_TAB+1
-	mov ax, 31h
-	mov di,offset B_TAB1
-	mov ds:[di+9], ax
+	mov di,offset B_TAB+2
 	mov dl,[bx] ;взятие значения по адресу
 	mov dl,[si]
 	mov dl,[di]
